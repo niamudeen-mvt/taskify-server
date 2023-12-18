@@ -1,20 +1,23 @@
+require("dotenv").config();
 const express = require("express");
-const dotenv = require("dotenv");
-const connectedToDb = require("./config/db");
 const cors = require("cors");
-const router = require("./routes/index");
-
-// config env
-dotenv.config();
+const router = require("./routes/index.js");
+const connectDb = require("./utils/db.js");
+const colors = require("colors");
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
+app.use(cors());
+
 app.use("/api/v1", router);
 
-connectedToDb().then(() => {
+app.get("/", (req, res) => {
+  res.send("test-backend is working");
+});
+
+connectDb().then(() => {
   app.listen(process.env.PORT, () => {
-    console.log(`Server is running at ${process.env.PORT}`);
+    console.log(`server is running at port: ${process.env.PORT}`.bgMagenta);
   });
 });
