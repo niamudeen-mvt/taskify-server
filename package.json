@@ -1,24 +1,21 @@
 {
-  "name": "test-backend",
+  "name": "test-project-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server"
+    "dev": "nodemon index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/niamudeen-mvt/test-backend.git"
-  },
-  "author": "",
+  "author": "Niamudeen",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/niamudeen-mvt/test-backend/issues"
-  },
-  "homepage": "https://github.com/niamudeen-mvt/test-backend#readme",
   "dependencies": {
-    "body-parser": "^1.20.2",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "mysql": "^2.18.1"
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.4",
+    "nodemon": "^3.0.1"
   }
 }
