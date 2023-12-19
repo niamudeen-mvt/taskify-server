@@ -72,9 +72,9 @@ const login = async (req, res) => {
       };
 
       // json web token
-      const token = jwt.sign(payload, TOKEN_DETAILS.JWT_SECRET_KEY, {
-        expiresIn: TOKEN_DETAILS.ACCESS_TOKEN_EXPIRATION_TIME,
-      });
+      // const token = jwt.sign(payload, TOKEN_DETAILS.JWT_SECRET_KEY, {
+      //   expiresIn: TOKEN_DETAILS.ACCESS_TOKEN_EXPIRATION_TIME,
+      // });
 
       // refresh token
 
@@ -101,7 +101,7 @@ const login = async (req, res) => {
       if (isPasswordMatch) {
         res.status(200).send({
           success: true,
-          access_token: token,
+          access_token: await userExist.generateAccessToken(),
           refresh_token: refresh_token,
           message: "user login successfully",
           userId: userExist._id.toString(),
