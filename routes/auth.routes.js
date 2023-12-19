@@ -14,10 +14,4 @@ userRouter.route("/login").post(validateLoginSchema, authControllers.login);
 userRouter.route("/refresh-token").post(authControllers.refreshToken);
 userRouter.route("/user").get(verifyToken, authControllers.userDetails);
 
-userRouter.route("/files/upload").post(verifyToken, authControllers.fileUpload);
-userRouter.route("/files").get(verifyToken, authControllers.getFiles);
-userRouter
-  .route("/files/delete/:id")
-  .delete(verifyToken, authControllers.deleteFile);
-
 module.exports = userRouter;

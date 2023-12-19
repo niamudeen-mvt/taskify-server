@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const TOKEN_DETAILS = require("../config");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -24,6 +25,23 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+});
+
+// secruring the password with bcrypt
+userSchema.pre("save", async function (next) {
+  const user = this;
+
+  if (!user.isModified("password")) {
+    next();
+  }
+
+  try {
+    const saltRound = 10;
+    const hash_password = await bcrypt.hash(user.password, saltRound);
+    user.password = hash_password;
+  } catch (error) {
+    next(error);
+  }
 });
 
 userSchema.methods.generateAccessToken = function () {
