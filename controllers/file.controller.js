@@ -30,7 +30,7 @@ const upload = multer({
     }
   },
   limits: { fileSize: maxSize },
-}).array("image", 5);
+}).array("image");
 
 const fileUpload = async (req, res) => {
   upload(req, res, async function (err) {
