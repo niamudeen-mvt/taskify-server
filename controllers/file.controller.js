@@ -1,8 +1,9 @@
 const fs = require("fs");
 const path = require("path");
-const Image = require("../models/image.model");
-
 const multer = require("multer");
+const Image = require("../models/image.model");
+const mongoose = require("mongoose");
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -14,21 +15,19 @@ const storage = multer.diskStorage({
 });
 
 const maxSize = 200 * 1024;
+const allowedMimeTypes = ["image/jpg", "image/png", "image/jpeg", "image/webp"];
+
+const fileFilter = (req, file, cb) => {
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only .webp, .jpeg, .jpg & .png images are allowed"));
+  }
+};
+
 const upload = multer({
   storage: storage,
-  fileFilter: function (req, file, cb) {
-    if (
-      file.mimetype === "image/jpg" ||
-      file.mimetype === "image/png" ||
-      file.mimetype === "image/jpeg" ||
-      file.mimetype === "image/webp"
-    ) {
-      cb(null, true);
-    } else {
-      cb(null, false);
-      cb(new Error("Only .webp .jpeg, .jpg & .png images are allowed"));
-    }
-  },
+  fileFilter: fileFilter,
   limits: { fileSize: maxSize },
 }).array("image");
 
@@ -87,21 +86,37 @@ const deleteFile = async (req, res) => {
   const imgId = req.params.id;
   const { userId } = req.user;
 
-  const deltedImage = await Image.findOneAndUpdate(
-    { userId },
-    { $pull: { images: { _id: imgId } } },
-    { new: true }
-  );
-  if (deltedImage) {
-    res.status(200).send({
-      success: true,
-      message: "Images delete succesfully",
-      images: deltedImage,
+  if (!mongoose.isValidObjectId(imgId)) {
+    return res.status(400).send({
+      success: false,
+      message: "Invalid image ID",
     });
-  } else {
-    res.status(400).send({
-      success: true,
-      message: "Images not found",
+  }
+
+  try {
+    const deletedImage = await Image.findOneAndUpdate(
+      { userId },
+      { $pull: { images: { _id: imgId } } },
+      { new: true }
+    );
+
+    if (deletedImage) {
+      res.status(200).send({
+        success: true,
+        message: "Image deleted successfully",
+        images: deletedImage,
+      });
+    } else {
+      res.status(404).send({
+        success: false,
+        message: "Image not found for deletion",
+      });
+    }
+  } catch (err) {
+    res.status(500).send({
+      success: false,
+      message: "Error deleting image",
+      error: err.message,
     });
   }
 };

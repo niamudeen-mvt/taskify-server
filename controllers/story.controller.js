@@ -18,19 +18,31 @@ const upload = multer({
 }).single("image");
 
 const getStories = async (req, res) => {
-  const stories = await Story.find({ userId: req.user.userId });
-  if (stories) {
-    res.status(200).send({
-      success: true,
-      message: "Stories found succesfully",
-      stories,
+  try {
+    let stories = await Story.find();
+    if (stories.length > 0) {
+      res.status(200).send({
+        success: true,
+        message: "Stories found successfully",
+        stories,
+      });
+    } else {
+      res.status(404).send({
+        success: false,
+        message: "No stories found for other users",
+      });
+    }
+  } catch (err) {
+    res.status(500).send({
+      success: false,
+      message: "Error fetching stories",
+      error: err.message,
     });
   }
 };
 
 const postStory = async (req, res, next) => {
   upload(req, res, async function (err) {
-    console.log(req.body);
     if (err) {
       console.log(err);
       res.send({ message: err.message });
@@ -77,7 +89,26 @@ const postStory = async (req, res, next) => {
   });
 };
 
+const deleteStory = async (req, res) => {
+  const { userId } = req.user;
+
+  const story = await Story.findOneAndDelete({ userId }, { new: true });
+  if (story) {
+    res.status(200).send({
+      success: true,
+      message: "story delete succesfully",
+      story: story,
+    });
+  } else {
+    res.status(400).send({
+      success: true,
+      message: "story not found",
+    });
+  }
+};
+
 module.exports = {
   postStory,
   getStories,
+  deleteStory,
 };
