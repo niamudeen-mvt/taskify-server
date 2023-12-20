@@ -4,10 +4,6 @@ const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
 const TOKEN_DETAILS = require("../config/index");
 
-// *=================================================
-//* user registration logic
-// *================================================
-
 const register = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -19,23 +15,30 @@ const register = async (req, res) => {
 
       const userExist = await User.findOne({ email });
 
-      if (userExist) {
-        return res.status(400).send({ message: "email already exists" });
+      const users = await User.find();
+      console.log(users, "users");
+
+      const phoneNumberExist = users.some((user) => user.phone === phone);
+      console.log(phoneNumberExist, "phoneNumberExist");
+      if (phoneNumberExist) {
+        return res.status(400).send({ message: "Phone number already exists" });
+      } else if (userExist) {
+        return res.status(400).send({ message: "Email already exists" });
+      } else {
+        const userCreated = await User.create({
+          name,
+          email,
+          phone,
+          password,
+          isAdmin,
+        });
+
+        res.status(201).send({
+          success: true,
+          data: userCreated,
+          message: "user registred successfully",
+        });
       }
-
-      const userCreated = await User.create({
-        name,
-        email,
-        phone,
-        password,
-        isAdmin,
-      });
-
-      res.status(201).send({
-        success: true,
-        data: userCreated,
-        message: "user registred successfully",
-      });
     }
   } catch (error) {
     console.log(error, "error");
@@ -43,68 +46,46 @@ const register = async (req, res) => {
   }
 };
 
-// *=================================================
-//* user login logic
-// *================================================
-
 const login = async (req, res) => {
   try {
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
+      // if validation errros exist <<<<<<<<<<<<<<<
       return res.status(400).send({ errors: errors.array() });
     } else {
       const { email, password } = req.body;
-
       const userExist = await User.findOne({ email });
 
-      console.log(userExist, "userExist");
       if (!userExist) {
         return res.status(400).send({
           message: "Invalid Credentials",
         });
-      }
-
-      const isPasswordMatch = await bcrypt.compare(
-        password,
-        userExist.password
-      );
-
-      console.log(isPasswordMatch, "password");
-
-      const payload = {
-        userId: userExist._id.toString(),
-      };
-
-      const refresh_token = jwt.sign(
-        payload,
-        TOKEN_DETAILS.REFRESH_SECRET_KEY,
-        {
-          expiresIn: TOKEN_DETAILS.REFRESH_TOKEN_EXPIRATION_TIME,
-        }
-      );
-
-      if (isPasswordMatch) {
-        res.status(200).send({
-          success: true,
-          access_token: await userExist.generateAccessToken(),
-          refresh_token: refresh_token,
-          message: "user login successfully",
-          userId: userExist._id.toString(),
-        });
       } else {
-        return res.status(401).send({
-          message: "Invalid email or passoword",
-        });
+        const isPasswordMatch = await bcrypt.compare(
+          password,
+          userExist.password
+        );
+
+        if (isPasswordMatch) {
+          res.status(200).send({
+            success: true,
+            access_token: await userExist.generateAccessToken(),
+            refresh_token: await userExist.generateRefreshToken(),
+            message: "user login successfully",
+            userId: userExist._id.toString(),
+          });
+        } else {
+          return res.status(401).send({
+            message: "Invalid email or passoword",
+          });
+        }
       }
     }
   } catch (error) {
     res.status(500).send({ msg: error });
   }
 };
-
-// *=================================================
-//* USER BY ID logic
-// *================================================
 
 const userDetails = async (req, res) => {
   try {
@@ -125,10 +106,6 @@ const userDetails = async (req, res) => {
     res.status(500).send({ msg: error });
   }
 };
-
-// *=================================================
-//* REFRESH_TOKEN
-// *================================================
 
 const refreshToken = async (req, res) => {
   const token = req.body.refresh_token;

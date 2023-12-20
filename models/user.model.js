@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
   phone: {
     type: Number,
     required: true,
+    unique: true,
   },
   password: {
     type: String,
@@ -54,6 +55,19 @@ userSchema.methods.generateAccessToken = function () {
     expiresIn: TOKEN_DETAILS.ACCESS_TOKEN_EXPIRATION_TIME,
   });
   return token;
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  // 'this' refers to the current user document
+  const payload = {
+    userId: this._id.toString(),
+  };
+
+  const refreshToken = jwt.sign(payload, TOKEN_DETAILS.REFRESH_SECRET_KEY, {
+    expiresIn: TOKEN_DETAILS.REFRESH_TOKEN_EXPIRATION_TIME,
+  });
+
+  return refreshToken;
 };
 
 const User = mongoose.model("User", userSchema);

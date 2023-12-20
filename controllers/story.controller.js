@@ -32,7 +32,7 @@ const upload = multer({
 
 const getStories = async (req, res) => {
   try {
-    let stories = await Story.find();
+    let stories = await Story.find().populate("userId", { name: 1 });
     if (stories.length > 0) {
       res.status(200).send({
         success: true,
@@ -64,7 +64,8 @@ const postStory = async (req, res, next) => {
     const { userId } = req.user;
     const { message } = req.body;
 
-    if (!message) res.send({ message: "message field is required" });
+    if (!message)
+      res.status(200).send({ message: "Message field is required" });
     else {
       if (req.file) {
         const file = req.file;
@@ -94,7 +95,7 @@ const postStory = async (req, res, next) => {
 
         res.status(200).send({
           success: true,
-          message: "Story Posted",
+          message: "Story posted succesfully",
           story,
         });
       }
@@ -109,13 +110,13 @@ const deleteStory = async (req, res) => {
   if (story) {
     res.status(200).send({
       success: true,
-      message: "story delete succesfully",
+      message: "Story deleted succesfully",
       story: story,
     });
   } else {
     res.status(400).send({
       success: true,
-      message: "story not found",
+      message: "Story not found",
     });
   }
 };
