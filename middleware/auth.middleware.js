@@ -3,10 +3,6 @@ const TOKEN_DETAILS = require("../config/index");
 
 const verifyToken = (req, res, next) => {
   const token = req?.headers?.authorization?.split(" ")[1];
-
-  // const cookie = req?.headers?.cookie;
-  // const token = cookie.split("=")[1];
-
   if (!token) {
     return res.status(200).send({
       success: false,
