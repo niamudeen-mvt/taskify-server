@@ -14,21 +14,21 @@ const storage = multer.diskStorage({
   },
 });
 
-const maxSize = 200 * 1024;
-const allowedMimeTypes = ["image/jpg", "image/png", "image/jpeg", "image/webp"];
+// const maxSize = 200 * 1024;
+// const allowedMimeTypes = ["image/jpg", "image/png", "image/jpeg", "image/webp"];
 
-const fileFilter = (req, file, cb) => {
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only .webp, .jpeg, .jpg & .png images are allowed"));
-  }
-};
+// const fileFilter = (req, file, cb) => {
+//   if (allowedMimeTypes.includes(file.mimetype)) {
+//     cb(null, true);
+//   } else {
+//     cb(new Error("Only .webp, .jpeg, .jpg & .png images are allowed"));
+//   }
+// };
 
 const upload = multer({
   storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: maxSize },
+  // fileFilter: fileFilter,
+  // limits: { fileSize: maxSize },
 }).array("image");
 
 const fileUpload = async (req, res) => {
@@ -72,12 +72,20 @@ const fileUpload = async (req, res) => {
 };
 
 const getFiles = async (req, res) => {
-  const images = await Image.findOne({ userId: req.user.userId });
-  if (images) {
-    res.status(200).send({
+  const { userId } = req.user;
+  if (userId) {
+    const images = await Image.find({ userId });
+    if (images) {
+      res.status(200).send({
+        success: true,
+        message: "Images found succesfully",
+        images,
+      });
+    }
+  } else {
+    res.status(400).send({
       success: true,
-      message: "Images found succesfully",
-      images,
+      message: "No user found",
     });
   }
 };

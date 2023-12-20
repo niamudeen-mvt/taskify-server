@@ -13,8 +13,21 @@ const storage = multer.diskStorage({
   },
 });
 
+// const maxSize = 200 * 1024;
+// const allowedMimeTypes = ["image/jpg", "image/png", "image/jpeg", "image/webp"];
+
+// const fileFilter = (req, file, cb) => {
+//   if (allowedMimeTypes.includes(file.mimetype)) {
+//     cb(null, true);
+//   } else {
+//     cb(new Error("Only .webp, .jpeg, .jpg & .png images are allowed"));
+//   }
+// };
+
 const upload = multer({
   storage: storage,
+  // fileFilter: fileFilter,
+  // limits: { fileSize: maxSize },
 }).single("image");
 
 const getStories = async (req, res) => {
@@ -70,7 +83,7 @@ const postStory = async (req, res, next) => {
 
         res.status(200).send({
           success: true,
-          message: "Story Posted",
+          message: "Story posted succesfully",
           story,
         });
       } else {
