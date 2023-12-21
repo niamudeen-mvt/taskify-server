@@ -16,10 +16,8 @@ const register = async (req, res) => {
       const userExist = await User.findOne({ email });
 
       const users = await User.find();
-      console.log(users, "users");
 
       const phoneNumberExist = users.some((user) => user.phone === phone);
-      console.log(phoneNumberExist, "phoneNumberExist");
       if (phoneNumberExist) {
         return res.status(400).send({ message: "Phone number already exists" });
       } else if (userExist) {
