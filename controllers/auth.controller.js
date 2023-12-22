@@ -12,12 +12,11 @@ const register = async (req, res) => {
       return res.status(400).send({ errors: errors.array() });
     } else {
       const { name, email, phone, password, isAdmin } = req.body;
-
       const userExist = await User.findOne({ email });
 
       const users = await User.find();
 
-      const phoneNumberExist = users.some((user) => user.phone === phone);
+      const phoneNumberExist = users.some((user) => user.phone == phone);
       if (phoneNumberExist) {
         return res.status(400).send({ message: "Phone number already exists" });
       } else if (userExist) {

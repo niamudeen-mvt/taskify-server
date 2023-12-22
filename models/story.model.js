@@ -1,23 +1,18 @@
 const mongoose = require("mongoose");
 const User = require("../models/user.model");
 
-const storySchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    message: {
-      type: String,
-      required: true,
-    },
-    image: {
-      type: String,
-      required: false,
-    },
+const storySchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
-  { timestamps: true }
-);
+  stories: [
+    {
+      message: String,
+      image: String,
+    },
+  ],
+});
 
 const Story = mongoose.model("Story", storySchema);
 

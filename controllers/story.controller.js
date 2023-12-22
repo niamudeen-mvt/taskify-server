@@ -41,59 +41,74 @@ const getStories = async (req, res) => {
   }
 };
 
-const postStory = async (req, res, next) => {
+const postStory = async (req, res) => {
   upload(req, res, async function (err) {
     if (err) {
       console.log(err);
       res.send({ message: err.message });
     }
-
     const { userId } = req.user;
     const { message } = req.body;
-
     if (!message)
       res.status(200).send({ message: "Message field is required" });
-    else {
-      if (req.file) {
-        const file = req.file;
-        const filePath = path.join(__dirname, "../uploads/" + file.filename);
 
-        const imageAsBase64 = fs.readFileSync(filePath, "base64");
+    let storyExist = await Story.findOne({ userId });
 
-        const image = `data:image/${file.mimetype};base64,${imageAsBase64}`;
-        fs.unlinkSync(filePath);
+    if (!storyExist) {
+      storyExist = new Story({ userId, stories: [] });
+    }
 
-        const story = await Story.create({
-          userId,
+    if (req.file) {
+      const file = req.file;
+      const filePath = path.join(__dirname, "../uploads/" + file.filename);
+      const imageAsBase64 = fs.readFileSync(filePath, "base64");
+      const image = `data:image/${file.mimetype};base64,${imageAsBase64}`;
+
+      fs.unlinkSync(filePath);
+
+      storyExist.stories = [
+        ...storyExist.stories,
+        {
           message,
           image,
-        });
+        },
+      ];
+      await storyExist.save();
+      // posting story with image
 
-        res.status(200).send({
-          success: true,
-          message: "Story posted succesfully",
-          story,
-        });
-      } else {
-        const story = await Story.create({
-          userId,
-          message,
-        });
+      res.status(200).send({
+        success: true,
+        message: "Story posted succesfully",
+      });
+    } else {
+      // posting story with only message
 
-        res.status(200).send({
-          success: true,
-          message: "Story posted succesfully",
-          story,
-        });
-      }
+      const story = await Story.findOneAndUpdate(
+        { userId },
+        { $push: { stories: { message } } },
+        {
+          new: true,
+        }
+      );
+
+      res.status(200).send({
+        success: true,
+        message: "Story posted succesfully",
+        story,
+      });
     }
   });
 };
 
 const deleteStory = async (req, res) => {
   const { userId } = req.user;
+  const storyId = req.params.id;
 
-  const story = await Story.findOneAndDelete({ userId }, { new: true });
+  const story = await Story.findOneAndUpdate(
+    { userId },
+    { $pull: { stories: { _id: storyId } } },
+    { new: true }
+  );
   if (story) {
     res.status(200).send({
       success: true,

@@ -5,6 +5,6 @@ const { verifyToken } = require("../middleware/auth.middleware");
 
 storyRouter.route("/post").post(verifyToken, Controllers.postStory);
 storyRouter.route("/").get(verifyToken, Controllers.getStories);
-storyRouter.route("/delete").delete(verifyToken, Controllers.deleteStory);
+storyRouter.route("/delete/:id").delete(verifyToken, Controllers.deleteStory);
 
 module.exports = storyRouter;
