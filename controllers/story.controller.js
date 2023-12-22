@@ -61,10 +61,11 @@ const postStory = async (req, res) => {
     if (req.file) {
       const file = req.file;
       const filePath = path.join(__dirname, "../uploads/" + file.filename);
+      console.log(filePath, "file path");
       const imageAsBase64 = fs.readFileSync(filePath, "base64");
       const image = `data:image/${file.mimetype};base64,${imageAsBase64}`;
 
-      fs.unlinkSync(filePath);
+      // fs.unlinkSync(filePath);
 
       storyExist.stories = [
         ...storyExist.stories,
