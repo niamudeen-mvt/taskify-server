@@ -44,7 +44,7 @@ const getStories = async (req, res) => {
 const postStory = async (req, res) => {
   upload(req, res, async function (err) {
     if (err) {
-      console.log(err);
+      console.log(err, "error <<<<");
       res.send({ message: err.message });
     }
     const { userId } = req.user;
