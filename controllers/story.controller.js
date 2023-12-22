@@ -45,9 +45,10 @@ const postStory = async (req, res) => {
   try {
     const { userId } = req.user;
     const { message, image } = req.body;
-
-    if (!message)
+    if (!message) {
       res.status(200).send({ message: "Message field is required" });
+      return;
+    }
 
     let storyExist = await Story.findOne({ userId });
 
@@ -86,7 +87,8 @@ const postStory = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error);
+    console.log(error, "error");
+    res.status(500).send({ message: error.message });
   }
 };
 
