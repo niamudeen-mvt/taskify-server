@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const User = require("../models/user.model");
+// const User = require("../models/user.model");
 
 const storySchema = new mongoose.Schema({
   userId: {
@@ -8,8 +8,17 @@ const storySchema = new mongoose.Schema({
   },
   stories: [
     {
-      message: String,
-      image: String,
+      type: new mongoose.Schema(
+        {
+          message: String,
+          image: String,
+          likes: [{ userId: String, name: String }],
+          views: [{ userId: String, name: String }],
+        },
+        {
+          timestamps: true,
+        }
+      ),
     },
   ],
 });

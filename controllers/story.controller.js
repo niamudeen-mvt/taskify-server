@@ -1,4 +1,5 @@
 const Story = require("../models/story.model");
+const User = require("../models/user.model");
 
 const getStories = async (req, res) => {
   try {
@@ -98,8 +99,73 @@ const deleteStory = async (req, res) => {
   }
 };
 
+const storyLikes = async (req, res) => {
+  const { userId } = req.user;
+  const { storyId, storyUserId } = req.body;
+
+  const story = await Story.findOne({ userId: storyUserId }).populate(
+    "userId",
+    { name: 1 }
+  );
+  if (story) {
+    const { name } = await User.findById({ _id: userId });
+    const storyToUpdate = story.stories.find((obj) => obj._id == storyId);
+    storyToUpdate.likes = [
+      ...storyToUpdate.likes,
+      { userId: userId, name: name },
+    ];
+
+    const updatedStories = story.stories.map((story) => {
+      if (story._id == storyId) return storyToUpdate;
+      else return story;
+    });
+
+    story.stories = updatedStories;
+    await story.save();
+    let stories = await Story.find().populate("userId", { name: 1 });
+    res.status(200).send({
+      success: true,
+      message: "Story liked successfully",
+      stories,
+    });
+  } else {
+    res.send({ message: "story not found" });
+  }
+};
+
+const storyViews = async (req, res) => {
+  const { userId } = req.user;
+  const { storyId, storyUserId } = req.body;
+
+  const story = await Story.findOne({ userId: storyUserId });
+  if (story) {
+    const storyToUpdate = story.stories.find((obj) => obj._id == storyId);
+
+    console.log(storyToUpdate, "storyToUpdate");
+    storyToUpdate.views = [...storyToUpdate.views, { userId }];
+
+    const updatedStories = story.stories.map((story) => {
+      if (story._id == storyId) return storyToUpdate;
+      else return story;
+    });
+
+    story.stories = updatedStories;
+    await story.save();
+
+    res.status(200).send({
+      success: true,
+      message: "story viewed successfully",
+      story: story,
+    });
+  } else {
+    res.send({ message: "story not found" });
+  }
+};
+
 module.exports = {
   postStory,
   getStories,
   deleteStory,
+  storyLikes,
+  storyViews,
 };
