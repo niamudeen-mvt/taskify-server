@@ -100,66 +100,73 @@ const deleteStory = async (req, res) => {
 };
 
 const storyLikes = async (req, res) => {
-  const { userId } = req.user;
-  const { storyId, storyUserId } = req.body;
+  try {
+    const { userId } = req.user;
+    const { storyId, storyUserId } = req.body;
 
-  const story = await Story.findOne({ userId: storyUserId }).populate(
-    "userId",
-    { name: 1 }
-  );
-  if (story) {
-    const { name } = await User.findById({ _id: userId });
-    const storyToUpdate = story.stories.find((obj) => obj._id == storyId);
-    storyToUpdate.likes = [
-      ...storyToUpdate.likes,
-      { userId: userId, name: name },
-    ];
+    const story = await Story.findOne({ userId: storyUserId });
+    if (story) {
+      const { name } = await User.findById({ _id: userId });
+      const storyToUpdate = story.stories.find((obj) => obj._id == storyId);
 
-    const updatedStories = story.stories.map((story) => {
-      if (story._id == storyId) return storyToUpdate;
-      else return story;
-    });
+      const updatedStory = await Story.findOneAndUpdate(
+        { "stories._id": storyId },
+        {
+          $set: {
+            "stories.$.likes": [
+              ...storyToUpdate.likes,
+              { userId: userId, name: name },
+            ],
+          },
+        },
+        { new: true }
+      );
 
-    story.stories = updatedStories;
-    await story.save();
-    let stories = await Story.find().populate("userId", { name: 1 });
-    res.status(200).send({
-      success: true,
-      message: "Story liked successfully",
-      stories,
-    });
-  } else {
-    res.send({ message: "story not found" });
-  }
+      let stories = await Story.find().populate("userId", { name: 1 });
+      res.status(200).send({
+        success: true,
+        message: "Story liked successfully",
+        stories,
+      });
+    } else {
+      res.send({ message: "story not found" });
+    }
+  } catch (error) {}
 };
 
 const storyViews = async (req, res) => {
-  const { userId } = req.user;
-  const { storyId, storyUserId } = req.body;
+  try {
+    const { userId } = req.user;
+    const { storyId, storyUserId } = req.body;
 
-  const story = await Story.findOne({ userId: storyUserId });
-  if (story) {
-    const storyToUpdate = story.stories.find((obj) => obj._id == storyId);
+    const story = await Story.findOne({ userId: storyUserId });
+    if (story) {
+      const { name } = await User.findById({ _id: userId });
+      const storyToUpdate = story.stories.find((obj) => obj._id == storyId);
 
-    console.log(storyToUpdate, "storyToUpdate");
-    storyToUpdate.views = [...storyToUpdate.views, { userId }];
+      const updatedStory = await Story.findOneAndUpdate(
+        { "stories._id": storyId },
+        {
+          $set: {
+            "stories.$.views": [
+              ...storyToUpdate.views,
+              { userId: userId, name: name },
+            ],
+          },
+        },
+        { new: true }
+      );
 
-    const updatedStories = story.stories.map((story) => {
-      if (story._id == storyId) return storyToUpdate;
-      else return story;
-    });
-
-    story.stories = updatedStories;
-    await story.save();
-
-    res.status(200).send({
-      success: true,
-      message: "story viewed successfully",
-      story: story,
-    });
-  } else {
-    res.send({ message: "story not found" });
-  }
+      let stories = await Story.find().populate("userId", { name: 1 });
+      res.status(200).send({
+        success: true,
+        message: "Story liked successfully",
+        stories,
+      });
+    } else {
+      res.send({ message: "story not found" });
+    }
+  } catch (error) {}
 };
 
 module.exports = {
