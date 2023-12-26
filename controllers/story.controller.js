@@ -1,5 +1,6 @@
 const Story = require("../models/story.model");
 const User = require("../models/user.model");
+const asyncHandler = require("../utils/asyncHandler");
 
 const getStories = async (req, res) => {
   try {
@@ -76,7 +77,7 @@ const postStory = async (req, res) => {
   }
 };
 
-const deleteStory = async (req, res) => {
+const deleteStory = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const storyId = req.params.id;
 
@@ -97,7 +98,7 @@ const deleteStory = async (req, res) => {
       message: "Story not found",
     });
   }
-};
+});
 
 const storyLikes = async (req, res) => {
   try {
