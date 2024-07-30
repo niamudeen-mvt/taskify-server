@@ -38,8 +38,8 @@ app.post("/cart-checkout", async (req, res) => {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: "http://localhost:3000/success",
-      cancel_url: "http://localhost:3000/cancel",
+      success_url: "https://ecom-project-lilac.vercel.app/success",
+      cancel_url: "https://ecom-project-lilac.vercel.app/cancel",
     });
 
     res.status(200).json({ id: session.id });
