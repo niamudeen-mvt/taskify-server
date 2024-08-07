@@ -4,20 +4,45 @@ const asyncHandler = require("../utils/asyncHandler");
 
 const getStories = async (req, res) => {
   try {
-    let stories = await Story.find().populate("userId", { name: 1 });
-    if (stories.length > 0) {
-      res.status(200).send({
+    const resp = await Story.find()
+      .populate("userId", { name: 1 })
+      .lean()
+      .exec();
+
+    if (resp) {
+      // console.log("resp: ", resp);
+      resp.forEach((item) => {
+        const { _id, name } = item?.userId || {};
+        item.stories = item.stories.map((story) => ({
+          ...story,
+          userId: _id,
+          username: name,
+        }));
+      });
+
+      const modifedResp = resp
+        .filter((item) => item?.userId)
+        .map((item) => {
+          return {
+            ...item,
+            userId: item.userId?._id,
+            username: item.userId?.name,
+          };
+        });
+
+      return res.status(200).send({
         success: true,
         message: "Stories found successfully",
-        stories,
-      });
-    } else {
-      res.status(404).send({
-        success: false,
-        message: "No stories found for other users",
+        stories: modifedResp,
       });
     }
+
+    return res.status(404).send({
+      success: false,
+      message: "No stories found for other users",
+    });
   } catch (err) {
+    console.log("err: ", err);
     res.status(500).send({
       success: false,
       message: "Error fetching stories",
@@ -29,7 +54,9 @@ const getStories = async (req, res) => {
 const postStory = async (req, res) => {
   try {
     const { userId } = req.user;
+    console.log("userId: ", userId);
     const { message, image } = req.body;
+    console.log("req.body: ", req.body);
     if (!message) {
       res.status(200).send({ message: "Message field is required" });
       return;
@@ -65,6 +92,7 @@ const postStory = async (req, res) => {
         }
       );
 
+      console.log("story: ", story);
       res.status(200).send({
         success: true,
         message: "Story posted succesfully",
@@ -130,9 +158,11 @@ const storyLikes = async (req, res) => {
         stories,
       });
     } else {
-      res.send({ message: "story not found" });
+      res.status(400).send({ message: "story not found" });
     }
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).send({ message: error });
+  }
 };
 
 const storyViews = async (req, res) => {
