@@ -54,12 +54,10 @@ const getStories = async (req, res) => {
 const postStory = async (req, res) => {
   try {
     const { userId } = req.user;
-    console.log("userId: ", userId);
     const { message, image } = req.body;
-    console.log("req.body: ", req.body);
+
     if (!message) {
-      res.status(200).send({ message: "Message field is required" });
-      return;
+      return res.status(400).send({ message: "Message field is required" });
     }
 
     let storyExist = await Story.findOne({ userId });
@@ -68,40 +66,47 @@ const postStory = async (req, res) => {
       storyExist = new Story({ userId, stories: [] });
     }
 
-    if (image) {
-      storyExist.stories = [
-        ...storyExist.stories,
-        {
-          message,
-          image,
-        },
-      ];
-      await storyExist.save();
-      // posting story with image
+    storyExist.stories.push({
+      message,
+      image,
+    });
+    await storyExist.save();
+    return res.status(200).send({
+      success: true,
+      message: "Story posted successfully",
+    });
 
-      res.status(200).send({
-        success: true,
-        message: "Story posted succesfully",
-      });
-    } else {
-      const story = await Story.findOneAndUpdate(
-        { userId },
-        { $push: { stories: { message } } },
-        {
-          new: true,
-        }
-      );
+    // if (image) {
+    //   // If there's an image, add the story with both message and image
+    //   storyExist.stories.push({
+    //     message,
+    //     image,
+    //   });
+    //   await storyExist.save();
+    //   return res.status(200).send({
+    //     success: true,
+    //     message: "Story posted successfully",
+    //   });
+    // } else {
+    //   const updatedStory = await Story.findOneAndUpdate(
+    //     { userId },
+    //     { $push: { stories: { message } } },
+    //     { new: true, useFindAndModify: false } // ensure you use the options correctly
+    //   );
 
-      console.log("story: ", story);
-      res.status(200).send({
-        success: true,
-        message: "Story posted succesfully",
-        story,
-      });
-    }
+    //   if (!updatedStory) {
+    //     return res.status(404).send({ message: "Story could not be updated" });
+    //   }
+
+    //   return res.status(200).send({
+    //     success: true,
+    //     message: "Story posted successfully",
+    //     story: updatedStory,
+    //   });
+    // }
   } catch (error) {
-    console.log(error, "error");
-    res.status(500).send({ message: error.message });
+    console.error("Error posting story:", error);
+    return res.status(500).send({ message: error.message });
   }
 };
 

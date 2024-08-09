@@ -48,7 +48,6 @@ const login = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      // if validation errros exist <<<<<<<<<<<<<<<
       return res.status(400).send({ errors: errors.array() });
     } else {
       const { email, password } = req.body;
@@ -68,7 +67,6 @@ const login = async (req, res) => {
           res.status(200).send({
             success: true,
             access_token: await userExist.generateAccessToken(),
-            refresh_token: await userExist.generateRefreshToken(),
             message: "user login successfully",
             userId: userExist._id.toString(),
           });
@@ -105,19 +103,24 @@ const userDetails = async (req, res) => {
 };
 
 const refreshToken = async (req, res) => {
-  const token = req.body.refresh_token;
+  const { userId } = req.params;
+
+  const token = req?.headers?.authorization?.split(" ")[1];
+  console.log("token: ", token);
+
   if (!token) {
     return res.status(200).send({
       success: false,
       message: "A token is required for authorization",
     });
   }
-  try {
-    const decodedUser = jwt.verify(token, TOKEN_DETAILS.REFRESH_SECRET_KEY);
-    if (decodedUser) {
-      const token = jwt.sign(
+  // jwt.verify(token, secret key)
+
+  jwt.verify(token, TOKEN_DETAILS.JWT_SECRET_KEY, function (error, result) {
+    if (error && error.name == "TokenExpiredError") {
+      const access_token = jwt.sign(
         {
-          userId: decodedUser?.userId.toString(),
+          userId: userId,
         },
         TOKEN_DETAILS.JWT_SECRET_KEY,
         {
@@ -126,15 +129,16 @@ const refreshToken = async (req, res) => {
       );
 
       return res.status(200).send({
-        access_token: token,
-        message: "new token generated successfully",
+        access_token,
+        code: "SUCCESS",
       });
-    } else {
-      return res.send({ message: "invalid token" });
     }
-  } catch (error) {
-    return res.status(400).send({ message: "invalid token" });
-  }
+
+    return res.status(200).send({
+      access_token: token,
+      code: "INVALID_TOKEN",
+    });
+  });
 };
 
 module.exports = {

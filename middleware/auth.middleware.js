@@ -13,6 +13,7 @@ const verifyToken = (req, res, next) => {
     const decodedUser = jwt.verify(token, TOKEN_DETAILS.JWT_SECRET_KEY);
     req.user = decodedUser;
   } catch (error) {
+    console.log("error: ", error);
     return res.status(401).send({ message: "Token has expired" });
   }
   return next();
